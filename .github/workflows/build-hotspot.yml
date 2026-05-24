@@ -1,21 +1,29 @@
 name: Build-Hotspot-Firmware
 
 on:
+  repository_dispatch:
+    types: [build-hotspot]
   workflow_dispatch:
     inputs:
       countdown_secs:
-        description: 'Countdown seconds'
+        description:
+  repository_dispatch:
+    types: [build-hotspot] 'Countdown seconds'
         required: false
         default: '10'
         type: string
       session_dur:
-        description: 'Session duration (minutes)'
+        description:
+  repository_dispatch:
+    types: [build-hotspot] 'Session duration (minutes)'
         required: false
         default: '60'
         type: string
 
   schedule:
-    - cron: '0 2 * * 3,6'   # Every Wed & Sat at 02:00 UTC
+    - cron:
+  repository_dispatch:
+    types: [build-hotspot] '0 2 * * 3,6'   # Every Wed & Sat at 02:00 UTC
 
 env:
   TZ: Asia/Shanghai
@@ -23,7 +31,9 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on:
+  repository_dispatch:
+    types: [build-hotspot] ubuntu-latest
     timeout-minutes: 300
 
     steps:
