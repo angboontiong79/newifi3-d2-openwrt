@@ -68,7 +68,6 @@ jobs:
           echo "CONFIG_DEFAULT_nodogsplash=y" >> .config
           echo "CONFIG_PACKAGE_nodogsplash=y" >> .config
           echo "CONFIG_PACKAGE_libjson-c=y"   >> .config
-          echo "CONFIG_PACKAGE_lighttpd=y"    >> .config
           ./scripts/feeds install nodogsplash luci-app-nodogsplash 2>/dev/null || true
           echo "CONFIG_PACKAGE_luci-app-nodogsplash=y" >> .config 2>/dev/null || true
           echo "NoDogSplash added to .config."
@@ -77,13 +76,11 @@ jobs:
         run: |
           set -e
           cd lede
-          # Create directory structure first
           mkdir -p ./etc/nodogsplash ./etc/config ./etc/init.d \
                    ./etc/uci-defaults \
                    ./usr/lib/lua/luci/controller \
                    ./usr/lib/lua/luci/model/cbi \
                    ./usr/lib/lua/luci/view/nodogsplash
-          # Copy all files
           cp ../splash.html ./etc/nodogsplash/splash.html
           cp ../files/etc/config/nodogsplash ./etc/config/nodogsplash
           cp ../files/etc/init.d/nodog-enable ./etc/init.d/nodog-enable
@@ -102,22 +99,31 @@ jobs:
           echo "Download complete."
 
       - name: Build firmware
+        env:
+          BUILD_LOG: ${{ github.workspace }}/build.log
         run: |
           cd lede
           echo "Building firmware (2-4 hours)..."
           date
-          make V=s -j$(nproc) 2>&1 | tee ../build.log
+          make V=s -j$(nproc) 2>&1 | tee "${BUILD_LOG}"
           date
 
       - name: Locate firmware
+        env:
+          BUILD_LOG: ${{ github.workspace }}/build.log
+          OUTPUT_DIR: ${{ github.workspace }}/lede/bin/targets/ramips/mt7621
         run: |
-          set -e
-          OUTPUT_DIR="$PWD/lede/bin/targets/ramips/mt7621"
-          ls -lh "${OUTPUT_DIR}"/${FIRMWARE_PREFIX} 2>/dev/null || find "${OUTPUT_DIR}" -name "*.bin" -maxdepth 1 -exec ls -lh {} \;
-          cp "${OUTPUT_DIR}"/${FIRMWARE_PREFIX} ./ 2>/dev/null || true
-          cp "${OUTPUT_DIR}"/openwrt-ramips-mt7621-d-team_newifi-d2.manifest ./ 2>/dev/null || true
+          echo "=== Build log tail ==="
+          tail -30 "${BUILD_LOG}" 2>/dev/null || echo "No build log."
           echo ""
-          tail -30 ../build.log
+          echo "=== Looking for firmware ==="
+          ls -lh "${OUTPUT_DIR}"/${FIRMWARE_PREFIX} 2>/dev/null || {
+            echo "Sysupgrade not found — searching..."
+            find "${OUTPUT_DIR}" -name "*.bin" -maxdepth 1 -exec ls -lh {} \; 2>/dev/null || echo "No .bin found."
+          }
+          cp "${OUTPUT_DIR}"/${FIRMWARE_PREFIX} . 2>/dev/null || true
+          cp "${OUTPUT_DIR}"/openwrt-ramips-mt7621-d-team_newifi-d2.manifest . 2>/dev/null || true
+          cp "${BUILD_LOG}" . 2>/dev/null || true
 
       - uses: actions/upload-artifact@v4
         if: success()
