@@ -77,16 +77,21 @@ jobs:
         run: |
           set -e
           cd lede
-          mkdir -p ./etc/nodogsplash
+          # Create directory structure first
+          mkdir -p ./etc/nodogsplash ./etc/config ./etc/init.d \
+                   ./etc/uci-defaults \
+                   ./usr/lib/lua/luci/controller \
+                   ./usr/lib/lua/luci/model/cbi \
+                   ./usr/lib/lua/luci/view/nodogsplash
+          # Copy all files
           cp ../splash.html ./etc/nodogsplash/splash.html
           cp ../files/etc/config/nodogsplash ./etc/config/nodogsplash
-          mkdir -p ./etc/init.d
           cp ../files/etc/init.d/nodog-enable ./etc/init.d/nodog-enable
           chmod +x ./etc/init.d/nodog-enable
-          mkdir -p ./etc/uci-defaults
           cp ../files/etc/uci-defaults/99-nodogsplash ./etc/uci-defaults/99-nodogsplash
           cp ../files/usr/lib/lua/luci/controller/nodogsplash.lua ./usr/lib/lua/luci/controller/nodogsplash.lua 2>/dev/null || true
           cp ../files/usr/lib/lua/luci/model/cbi/nodogsplash.lua ./usr/lib/lua/luci/model/cbi/nodogsplash.lua 2>/dev/null || true
+          cp ../files/usr/lib/lua/luci/view/nodogsplash/status.htm ./usr/lib/lua/luci/view/nodogsplash/status.htm 2>/dev/null || true
           echo "Custom files copied."
 
       - name: Download sources
